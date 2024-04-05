@@ -46,67 +46,75 @@ public class Main {
             return str;
         }
     }
-    
+
+    static class Pair implements Comparable<Pair>{
+        long first;
+        int second;
+
+        public Pair(long first,int second){
+            this.first=first;
+            this.second=second;
+        }
+
+        public int compareTo(Pair o){
+            if (Long.compare(this.first,o.first)>0){
+                return 1;
+            }else if (Long.compare(this.first,o.first)==0){
+                return Integer.compare(this.second,o.second);
+            }else{
+                return -1;
+            }
+
+        }
+    }
+
     static FastReader in=new FastReader();
-    static PrintWriter pw=new PrintWriter(new OutputStreamWriter(System.out));
     public static void main(String[] args) {
-        int T=1;
-        while (T-->0) new Main().run();
-        pw.flush();
-    }
-    
-    class Node{
-        int to;
-        int weight;
-        public Node(int v, int w){
-            to=v;
-            weight=w;
+        int n=in.nextInt();
+        int k=in.nextInt();
+
+        PriorityQueue<Pair> q = new PriorityQueue<>();
+        int[] pre=new int[n+2];
+        int[] ne=new int[n+2];
+        long[] cnt=new long[n+2];
+        long[] a=new long[n+2];
+
+        for (int i=1;i<=n;i++){
+            long t=in.nextLong();
+            q.add(new Pair(t,i));
+            pre[i]=i-1;
+            ne[i]=i+1;
         }
-    }
-    int[][] dp;
-    int N,M,K;
-    ArrayList<ArrayList<Node>> graph=new ArrayList<>();
-    void dijkstra(){
-        for (int[] array : dp) {
-            Arrays.fill(array,Integer.MAX_VALUE);
-        }
-        dp[0][0]=0;
-        Queue<int[]> queue=new LinkedList<>();
-        queue.add(new int[]{0,0});
-        while (!queue.isEmpty()){
-            int[] p=queue.poll();
-            int u=p[0],j=p[1];
-            for (Node node:graph.get(u)){
-                int v=node.to,w=node.weight;
-                if (j<K){
-                    if (dp[v][j+1]>dp[u][j]){
-                        dp[v][j+1]=dp[u][j];
-                        queue.add(new int[]{v,j+1});
-                    }
-                }
-                if (j==0||j==K){
-                    if (dp[v][j]>dp[u][j]+w){
-                        dp[v][j]=dp[u][j]+w;
-                        queue.add(new int[]{v,j});
-                    }
-                }
+
+        while (q.size()>n-k){
+            long x=q.peek().first;
+            int id=q.peek().second;
+            q.poll();
+            if (cnt[id]!=0){
+                q.add(new Pair(x+cnt[id],id));
+                cnt[id]=0;
+            }else{
+                int left=pre[id];
+                int right=ne[id];
+                cnt[left]+=x;
+                cnt[right]+=x;
+                ne[left]=right;
+                pre[right]=left;
             }
         }
-    }
-    void run(){
-        N=in.nextInt();
-        K=in.nextInt();
-        M=in.nextInt();
-        dp=new int[N+1][K+1];
-        for (int i=0;i<N;i++) graph.add(new ArrayList<>());
-        while (M-->0){
-            int u=in.nextInt();
-            int v=in.nextInt();
-            int w=in.nextInt();
-            graph.get(u).add(new Node(v,w));
-            graph.get(v).add(new Node(u,w));
+
+        while (!q.isEmpty()){
+            long x=q.peek().first;
+            int id=q.peek().second;
+            q.poll();
+            a[id]=x+cnt[id];
         }
-        dijkstra();
-        System.out.println(Math.min(dp[N-1][0],dp[N-1][K]));
+
+        for (int i=1;i<=n;i++){
+            if (a[i]!=0){
+                System.out.print(a[i]+" ");
+            }
+        }
+
     }
 }
